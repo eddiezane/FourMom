@@ -16,8 +16,10 @@ class FourMom < Sinatra::Base
   @@cache = IronCache::Client.new.cache('fourmom')
 
   # Save the values locally in case our dyno went to sleep
-  @@city  = @@cache.get('city').value
-  @@state = @@cache.get('state').value
+  @@city  = @@cache.get('city')
+  @@city  = @@city.value if @@city
+  @@state = @@cache.get('state')
+  @@state = @@state.value if @@state
 
   # Our post request handler
   post '/' do
@@ -36,7 +38,7 @@ class FourMom < Sinatra::Base
 
       # Create a new email...
       mail = SendGrid::Mail.new do |m|
-        m.to      = 'eddiezane@sendgrid.com'
+        m.to      = '1238675309@vtext.com'
         m.from    = 'taco@cat.limo'
         m.subject = 'FourMom'
         m.text    = "Hi mama! I'm currently in: #{city}, #{state}."
