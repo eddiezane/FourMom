@@ -51,7 +51,7 @@ class FourMom < Sinatra::Base
         m.to      = ENV['PHONE_NUMBER']
         m.from    = 'taco@cat.limo'
         m.subject = 'FourMom'
-        m.text    = "Hi mama! I'm currently in: #{city}, #{state}. It's currently #{temp} and #{weather}"
+        m.text    = "Hi mama! I'm currently in: #{city}, #{state}. Right now it's #{temp} and #{weather}"
       end
 
       # ... and send it!
