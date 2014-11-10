@@ -3,6 +3,7 @@ require 'json'
 require 'iron_cache'
 require 'sendgrid-ruby'
 require 'sinatra/base'
+require 'wunderground'
 
 # Create a modular style Sinatra app
 class FourMom < Sinatra::Base
@@ -14,6 +15,9 @@ class FourMom < Sinatra::Base
 
   # Grab our Iron Cache
   @@cache = IronCache::Client.new.cache('fourmom')
+
+  # Set up Wunderground
+  @@w_api = Wunderground.new(ENV['WUNDERGROUND_API_KEY'])
 
   # Save the values locally in case our dyno went to sleep
   @@city  = @@cache.get('city')
@@ -27,6 +31,7 @@ class FourMom < Sinatra::Base
     checkin = JSON.parse(params[:checkin])
     city    = checkin['venue']['location']['city']
     state   = checkin['venue']['location']['state']
+    zip     = checkin['venue']['location']['postalCode']
 
     # Check if we are somewhere new
     if city != @@city || state != @@state
@@ -36,12 +41,17 @@ class FourMom < Sinatra::Base
       @@cache.put('city', @@city)
       @@cache.put('state', @@state)
 
+      # Grab the weather
+      res     = @@w_api.conditions_for(zip)
+      weather = res["current_observation"]["weather"]
+      temp    = res["current_observation"]["temp_f"]
+
       # Create a new email...
       mail = SendGrid::Mail.new do |m|
-        m.to      = '1238675309@vtext.com'
+        m.to      = ENV['PHONE_NUMBER']
         m.from    = 'taco@cat.limo'
         m.subject = 'FourMom'
-        m.text    = "Hi mama! I'm currently in: #{city}, #{state}."
+        m.text    = "Hi mama! I'm currently in: #{city}, #{state}. It's currently #{temp} and #{weather}"
       end
 
       # ... and send it!
